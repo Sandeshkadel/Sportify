@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sportify - Music Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-logo {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #1db954;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background-color: #282828;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background-color: #1db954;
+            transition: width 0.3s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 240px;
+            background-color: #000000;
+            padding: 24px 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 5;
+        }
+        
+        .logo {
+            padding: 0 12px 18px;
+        }
+        
+        .logo i {
+            font-size: 40px;
+            color: #1DB954;
+        }
+        
+        .nav-item {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: #b3b3b3;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            color: #ffffff;
+            background-color: #282828;
+        }
+        
+        .nav-item i {
+            margin-right: 16px;
+            font-size: 20px;
+        }
+        
+        .library {
+            background-color: #121212;
+            border-radius: 8px;
+            margin-top: 8px;
+            padding: 16px;
+        }
+        
+        .library-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .library-header h2 {
+            font-size: 16px;
+            color: #b3b3b3;
+            font-weight: 700;
+        }
+        
+        .library-header i {
+            color: #b3b3b3;
+            cursor: pointer;
+        }
+        
+        .library-item {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            color: #b3b3b3;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .library-item:hover {
+            color: #ffffff;
+        }
+        
+        .library-item i {
+            margin-right: 16px;
+            font-size: 16px;
+            background-color: #333;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2px;
+        }
+        
+        .playlists {
+            margin-top: 24px;
+        }
+        
+        .playlists h3 {
+            color: #b3b3b3;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            padding: 0 12px;
+        }
+        
+        .playlist {
+            padding: 8px 12px;
+            color: #b3b3b3;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .playlist:hover {
+            color: #ffffff;
+            background-color: #282828;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .topbar {
+            background-color: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(20px);
+            height: 64px;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .navigation {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .search-bar {
+            background-color: #ffffff;
+            border-radius: 500px;
+            height: 48px;
+            width: 364px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+        }
+        
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: #000000;
+            font-size: 14px;
+            margin-left: 8px;
+            width: 100%;
+            outline: none;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .upgrade-btn {
+            background-color: transparent;
+            color: #ffffff;
+            border: 1px solid #b3b3b3;
+            border-radius: 500px;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .upgrade-btn:hover {
+            border-color: #ffffff;
+            transform: scale(1.05);
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #535353;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .content {
+            padding: 24px 32px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .greeting {
+            margin-bottom: 24px;
+        }
+        
+        .greeting h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .greeting p {
+            color: #b3b3b3;
+            font-size: 14px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 24px 0;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 24px;
+        }
+        
+        .card {
+            background-color: #181818;
+            border-radius: 8px;
+            padding: 16px;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            background-color: #282828;
+        }
+        
+        .card-image {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-image .play-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 40px;
+            height: 40px;
+            background-color: #1db954;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover .play-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .card h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .card p {
+            color: #b3b3b3;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .popular-songs {
+            margin-top: 40px;
+        }
+        
+        .songs-list {
+            background-color: #181818;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .song {
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr 100px 50px;
+            align-items: center;
+            padding: 8px 16px;
+            gap: 16px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        
+        .song:hover {
+            background-color: #282828;
+        }
+        
+        .song-number {
+            color: #b3b3b3;
+            text-align: center;
+        }
+        
+        .song-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .song-title img {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+        }
+        
+        .song-artist, .song-album {
+            color: #b3b3b3;
+            font-size: 14px;
+        }
+        
+        .song-duration {
+            color: #b3b3b3;
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        .song-like {
+            color: #b3b3b3;
+            text-align: center;
+        }
+        
+        .song.playing {
+            background-color: #2a2a2a;
+        }
+        
+        .song.playing .song-number {
+            color: #1db954;
+        }
+        
+        /* Player Styles */
+        .player {
+            background-color: #181818;
+            border-top: 1px solid #282828;
+            height: 90px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        
+        .now-playing {
+            width: 30%;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .now-playing img {
+            width: 56px;
+            height: 56px;
+            border-radius: 4px;
+        }
+        
+        .track-info h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .track-info p {
+            font-size: 12px;
+            color: #b3b3b3;
+        }
+        
+        .track-actions {
+            display: flex;
+            gap: 16px;
+            margin-left: 16px;
+        }
+        
+        .track-actions i {
+            color: #b3b3b3;
+            cursor: pointer;
+        }
+        
+        .track-actions i:hover {
+            color: #ffffff;
+        }
+        
+        .player-controls {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .control-buttons i {
+            color: #b3b3b3;
+            cursor: pointer;
+        }
+        
+        .control-buttons i:hover {
+            color: #ffffff;
+        }
+        
+        .control-buttons .play-pause {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-buttons .play-pause:hover {
+            transform: scale(1.06);
+        }
+        
+        .progress-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .progress-time {
+            color: #b3b3b3;
+            font-size: 12px;
+            min-width: 40px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background-color: #535353;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #b3b3b3;
+            border-radius: 2px;
+            width: 30%;
+        }
+        
+        .progress:hover {
+            background-color: #1db954;
+        }
+        
+        .progress:hover .progress-handle {
+            display: block;
+        }
+        
+        .progress-handle {
+            width: 12px;
+            height: 12px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+        }
+        
+        .player-options {
+            width: 30%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .player-options i {
+            color: #b3b3b3;
+            cursor: pointer;
+        }
+        
+        .player-options i:hover {
+            color: #ffffff;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 125px;
+        }
+        
+        .volume-bar {
+            height: 4px;
+            background-color: #535353;
+            border-radius: 2px;
+            flex: 1;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .volume-level {
+            height: 100%;
+            background-color: #b3b3b3;
+            border-radius: 2px;
+            width: 70%;
+        }
+        
+        .volume-level:hover {
+            background-color: #1db954;
+        }
+        
+        .volume-handle {
+            width: 12px;
+            height: 12px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+        }
+        
+        .volume-bar:hover .volume-handle {
+            display: block;
+        }
+        
+        /* Playlist View */
+        .playlist-header {
+            display: flex;
+            align-items: flex-end;
+            padding: 20px 0 30px;
+            gap: 24px;
+        }
+        
+        .playlist-cover {
+            width: 232px;
+            height: 232px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        
+        .playlist-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .playlist-info {
+            flex: 1;
+        }
+        
+        .playlist-type {
+            font-size: 14px;
+            color: #b3b3b3;
+            margin-bottom: 8px;
+        }
+        
+        .playlist-name {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            line-height: 1;
+        }
+        
+        .playlist-description {
+            font-size: 14px;
+            color: #b3b3b3;
+            margin-bottom: 16px;
+        }
+        
+        .playlist-stats {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #b3b3b3;
+        }
+        
+        .playlist-stats .dot {
+            width: 4px;
+            height: 4px;
+            background-color: #b3b3b3;
+            border-radius: 50%;
+        }
+        
+        /* Premium Page */
+        .premium-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .premium-card {
+            background: linear-gradient(to bottom, #3a1d71, #1a1a1a);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .premium-card h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .premium-card p {
+            color: #b3b3b3;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        
+        .premium-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .plan-card {
+            background-color: #282828;
+            border-radius: 8px;
+            padding: 25px;
+            transition: transform 0.3s;
+        }
+        
+        .plan-card:hover {
+            transform: translateY(-5px);
+            background-color: #333;
+        }
+        
+        .plan-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #1db954;
+        }
+        
+        .plan-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .plan-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        
+        .plan-features li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .plan-features li i {
+            color: #1db954;
+            margin-right: 10px;
+        }
+        
+        .plan-button {
+            background-color: #1db954;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        .plan-button:hover {
+            background-color: #1ed760;
+        }
+        
+        /* Visualizer */
+        .visualizer {
+            display: flex;
+            align-items: flex-end;
+            height: 40px;
+            margin-right: 20px;
+        }
+        
+        .visualizer-bar {
+            width: 3px;
+            background-color: #1db954;
+            margin: 0 2px;
+            border-radius: 2px;
+        }
+        
+        /* Auth Modal */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .auth-content {
+            background-color: #282828;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .auth-header {
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(to right, #3a1d71, #1db954);
+        }
+        
+        .auth-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .auth-header p {
+            color: #b3b3b3;
+        }
+        
+        .auth-body {
+            padding: 30px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background-color: transparent;
+            border: none;
+            color: #b3b3b3;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .auth-tab.active {
+            color: #ffffff;
+            border-bottom: 2px solid #1db954;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #b3b3b3;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 1px solid #535353;
+            background-color: #121212;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .form-group input:focus {
+            border-color: #1db954;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #1db954;
+            border: none;
+            border-radius: 50px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .auth-btn:hover {
+            background-color: #1ed760;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #535353;
+        }
+        
+        .auth-footer p {
+            color: #b3b3b3;
+        }
+        
+        .auth-footer a {
+            color: #1db954;
+            text-decoration: none;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #b3b3b3;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 200px;
+            }
+            
+            .search-bar {
+                width: 280px;
+            }
+            
+            .playlist-name {
+                font-size: 56px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .nav-item span, .library-header h2, .library-item span, .playlists h3, .playlist {
+                display: none;
+            }
+            
+            .nav-item {
+                justify-content: center;
+            }
+            
+            .nav-item i {
+                margin-right: 0;
+            }
+            
+            .library {
+                padding: 8px;
+            }
+            
+            .library-item {
+                justify-content: center;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+            
+            .playlist-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .playlist-name {
+                font-size: 48px;
+            }
+            
+            .playlist-cover {
+                width: 200px;
+                height: 200px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .playlist-name {
+                font-size: 36px;
+            }
+            
+            .song {
+                grid-template-columns: 40px 1fr 80px 40px;
+            }
+            
+            .song-album {
+                display: none;
+            }
+            
+            .premium-plans {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">
+            <i class="fas fa-music"></i> Sportify
+        </div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fab fa-spotify"></i>
+        </div>
+        
+        <div class="nav-item active" data-section="home">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        
+        <div class="nav-item" data-section="search">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+        </div>
+        
+        <div class="nav-item" data-section="library">
+            <i class="fas fa-book"></i>
+            <span>Your Library</span>
+        </div>
+        
+        <div class="nav-item" data-section="premium">
+            <i class="fas fa-crown"></i>
+            <span>Premium</span>
+        </div>
+        
+        <div class="library">
+            <div class="library-header">
+                <h2>Your Library</h2>
+                <i class="fas fa-plus" id="addPlaylist"></i>
+            </div>
+            
+            <div class="library-item">
+                <i class="fas fa-book"></i>
+                <span>Playlists</span>
+            </div>
+            
+            <div class="library-item">
+                <i class="fas fa-user-friends"></i>
+                <span>Artists</span>
+            </div>
+            
+            <div class="library-item">
+                <i class="fas fa-compact-disc"></i>
+                <span>Albums</span>
+            </div>
+        </div>
+        
+        <div class="playlists">
+            <h3>Playlists</h3>
+            <div class="playlist" data-playlist="favorites">Liked Songs</div>
+            <div class="playlist" data-playlist="workout">Workout Mix</div>
+            <div class="playlist" data-playlist="chill">Chill Vibes</div>
+            <div class="playlist" data-playlist="rock">Rock Classics</div>
+            <div class="playlist" data-playlist="pop">Pop Hits</div>
+            <div class="playlist" data-playlist="arijit">Arijit Singh</div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="navigation">
+                <div class="nav-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </div>
+                <div class="nav-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <i class="fas fa-search" style="color: #121212;"></i>
+                <input type="text" placeholder="What do you want to listen to?" id="search-input">
+            </div>
+            
+            <div class="user-profile">
+                <button class="upgrade-btn" id="upgradeBtn">Upgrade</button>
+                <div class="user-avatar" id="userProfile">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content Sections -->
+        <div class="content" id="content">
+            <!-- Home Section -->
+            <div class="content-section" id="homeContent">
+                <div class="greeting">
+                    <h1>Good evening</h1>
+                    <p>Here's what you recently played</p>
+                </div>
+                
+                <div class="cards-container">
+                    <div class="card" data-playlist="favorites">
+                        <div class="card-image">
+                            <img src="https://www.musicgrotto.com/wp-content/uploads/2021/09/best-songs-of-all-time-graphic-art.jpg" alt="Liked Songs">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Liked Songs</h3>
+                        <p>Playlist</p>
+                    </div>
+                    
+                    <div class="card" data-playlist="workout">
+                        <div class="card-image">
+                            <img src="https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da842b76e6775c5f5f1e8cb87ced" alt="Workout Mix">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Workout Mix</h3>
+                        <p>Playlist</p>
+                    </div>
+                    
+                    <div class="card" data-playlist="chill">
+                        <div class="card-image">
+                            <img src="https://wallpapersok.com/images/hd/chill-4k-mountain-sunset-art-6jor3hh9q5cm5bjj.jpg" alt="Chill Vibes">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Chill Vibes</h3>
+                        <p>Playlist</p>
+                    </div>
+                    
+                    <div class="card" data-playlist="rock">
+                        <div class="card-image">
+                            <img src="https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681" alt="Rock Classics">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Rock Classics</h3>
+                        <p>Playlist</p>
+                    </div>
+                    
+                    <div class="card" data-playlist="pop">
+                        <div class="card-image">
+                            <img src="https://static.vecteezy.com/system/resources/previews/034/205/828/non_2x/colored-pop-music-style-concept-background-illustration-vector.jpg" alt="Pop Hits">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Pop Hits</h3>
+                        <p>Playlist</p>
+                    </div>
+                    
+                    <div class="card" data-playlist="arijit">
+                        <div class="card-image">
+                            <img src="https://i.scdn.co/image/ab6761610000e5eb5ba2d75eb08a2d672f9b69b7" alt="Arijit Singh">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Arijit Singh</h3>
+                        <p>Artist</p>
+                    </div>
+                </div>
+                
+                <div class="section-title">Popular</div>
+                
+                <div class="popular-songs">
+                    <div class="songs-list">
+                        <div class="song playing" data-song="1">
+                            <div class="song-number">1</div>
+                            <div class="song-title">
+                                <img src="https://debbreevents.co.uk/wp-content/uploads/2022/06/SushantKc.jpeg" alt="UFF">
+                                <div>
+                                    <h4>UFF</h4>
+                                    <p class="song-artist">Sushant Kc</p>
+                                </div>
+                            </div>
+                            <div class="song-album">Single</div>
+                            <div class="song-duration">3:45</div>
+                            <div class="song-like"><i class="far fa-heart"></i></div>
+                        </div>
+                        
+                        <div class="song" data-song="2">
+                            <div class="song-number">2</div>
+                            <div class="song-title">
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfsQt2BFofAuqjOak_PlHyGxsFG71FoCBWBg&s" alt="Dushman herya ko herai">
+                                <div>
+                                    <h4>DUSMAN_HEREKO_HERAI</h4>
+                                    <p class="song-artist">Durgesh Thapa</p>
+                                </div>
+                            </div>
+                            <div class="song-album">Durgesh Thnapa</div>
+                            <div class="song-duration">4:44</div>
+                            <div class="song-like"><i class="far fa-heart"></i></div>
+                        </div>
+                        
+                        <div class="song" data-song="3">
+                            <div class="song-number">3</div>
+                            <div class="song-title">
+                                <img src="https://i.scdn.co/image/ab6761610000e5eb8f471df05ca3ac1c52e3a05f" alt="Sajni">
+                                <div>
+                                    <h4>Bujhe_Hunchha_Kura</h4>
+                                    <p class="song-artist">Melina Rai</p>
+                                </div>
+                            </div>
+                            <div class="song-album">Melina Rai</div>
+                            <div class="song-duration">2:50</div>
+                            <div class="song-like"><i class="far fa-heart"></i></div>
+                        </div>
+                        
+                        <div class="song" data-song="6">
+                            <div class="song-number">4</div>
+                            <div class="song-title">
+                                <img src="https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da842b76e6775c5f5f1e8cb87ced" alt="We rollin">
+                                <div>
+                                    <h4>We rollin</h4>
+                                    <p class="song-artist">Hindi</p>
+                                </div>
+                            </div>
+                            <div class="song-album">Hindi</div>
+                            <div class="song-duration">4:21</div>
+                            <div class="song-like"><i class="far fa-heart"></i></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Verified Artist</div>
+                
+                <div class="cards-container">
+                    <div class="card">
+                        <div class="card-image">
+                            <img src="https://i.scdn.co/image/ab6761610000e5eb5ba2d75eb08a2d672f9b69b7" alt="Arjit Singh">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Arjit Singh</h3>
+                        <p>47,208,118 monthly listeners</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-image">
+                            <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846d18b3c737a9f8e908c504f5" alt="Sachin-Jigar">
+                            <div class="play-btn">
+                                <i class="fas fa-play" style="color: #000;"></i>
+                            </div>
+                        </div>
+                        <h3>Sachin-Jigar</h3>
+                        <p>Composer</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Playlist View (Hidden by default) -->
+            <div class="content-section" id="playlistContent" style="display: none;">
+                <div class="playlist-header">
+                    <div class="playlist-cover">
+                        <img id="playlistCover" src="https://source.unsplash.com/random/400x400/?playlist" alt="Playlist Cover">
+                    </div>
+                    <div class="playlist-info">
+                        <div class="playlist-type" id="playlistType">PLAYLIST</div>
+                        <h1 class="playlist-name" id="playlistName">Playlist Name</h1>
+                        <div class="playlist-description" id="playlistDescription">Playlist description goes here</div>
+                        <div class="playlist-stats">
+                            <span id="playlistOwner">Sportify</span>
+                            <div class="dot"></div>
+                            <span id="playlistSongsCount">0 songs</span>
+                            <div class="dot"></div>
+                            <span id="playlistDuration">0 min</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popular-songs">
+                    <div class="songs-list" id="playlistSongsList">
+                        <!-- Playlist songs will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Premium Section -->
+            <div class="content-section" id="premiumContent" style="display: none;">
+                <div class="premium-container">
+                    <div class="premium-card">
+                        <h2>Sportify Premium</h2>
+                        <p>Get Premium to listen without interruptions and with the best sound quality. Cancel anytime.</p>
+                        <div class="premium-plans">
+                            <div class="plan-card">
+                                <div class="plan-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <h3 class="plan-title">Premium Individual</h3>
+                                <div class="plan-price">$9.99/month</div>
+                                <ul class="plan-features">
+                                    <li><i class="fas fa-check"></i> Ad-free music listening</li>
+                                    <li><i class="fas fa-check"></i> Download to listen offline</li>
+                                    <li><i class="fas fa-check"></i> Play songs in any order</li>
+                                    <li><i class="fas fa-check"></i> High quality audio</li>
+                                </ul>
+                                <button class="plan-button">Get Started</button>
+                            </div>
+                            
+                            <div class="plan-card">
+                                <div class="plan-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h3 class="plan-title">Premium Duo</h3>
+                                <div class="plan-price">$12.99/month</div>
+                                <ul class="plan-features">
+                                    <li><i class="fas fa-check"></i> 2 Premium accounts</li>
+                                    <li><i class="fas fa-check"></i> Duo Mix: a playlist for both</li>
+                                    <li><i class="fas fa-check"></i> Ad-free music listening</li>
+                                    <li><i class="fas fa-check"></i> Download 10k+ songs</li>
+                                </ul>
+                                <button class="plan-button">Get Started</button>
+                            </div>
+                            
+                            <div class="plan-card">
+                                <div class="plan-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <h3 class="plan-title">Premium Family</h3>
+                                <div class="plan-price">$15.99/month</div>
+                                <ul class="plan-features">
+                                    <li><i class="fas fa-check"></i> Up to 6 Premium accounts</li>
+                                    <li><i class="fas fa-check"></i> Family Mix: a playlist for your family</li>
+                                    <li><i class="fas fa-check"></i> Block explicit music</li>
+                                    <li><i class="fas fa-check"></i> Spotify Kids: separate app for children</li>
+                                </ul>
+                                <button class="plan-button">Get Started</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Player -->
+        <div class="player">
+            <div class="now-playing">
+                <img id="currentCover" src="https://source.unsplash.com/random/56x56/?album1" alt="Album Cover">
+                <div class="track-info">
+                    <h4 id="currentTitle">Apps Base Le</h4>
+                    <p id="currentArtist">Sachin-Jigar, Arjit Singh, Amitabh Bhartacharya</p>
+                </div>
+                <div class="track-actions">
+                    <i class="far fa-heart"></i>
+                    <i class="far fa-window-restore"></i>
+                </div>
+            </div>
+            
+            <div class="player-controls">
+                <div class="control-buttons">
+                    <i class="fas fa-random"></i>
+                    <i class="fas fa-step-backward" id="prevBtn"></i>
+                    <div class="play-pause" id="playPauseBtn">
+                        <i class="fas fa-play" id="playPauseIcon"></i>
+                    </div>
+                    <i class="fas fa-step-forward" id="nextBtn"></i>
+                    <i class="fas fa-repeat"></i>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-time" id="currentTime">0:00</div>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress" id="progress">
+                            <div class="progress-handle"></div>
+                        </div>
+                    </div>
+                    <div class="progress-time" id="duration">3:45</div>
+                </div>
+            </div>
+            
+            <div class="player-options">
+                <i class="fas fa-list"></i>
+                <div class="visualizer" id="visualizer">
+                    <!-- Visualizer bars will be added dynamically -->
+                </div>
+                <div class="volume-container">
+                    <i class="fas fa-volume-up"></i>
+                    <div class="volume-bar">
+                        <div class="volume-level" id="volumeLevel">
+                            <div class="volume-handle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal" id="authModal">
+        <button class="close-modal" id="closeModal">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="auth-content">
+            <div class="auth-header">
+                <h2>Sportify</h2>
+                <p>Listen to millions of songs, anywhere</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Log In</button>
+                <button class="auth-tab" data-tab="signup">Sign Up</button>
+            </div>
+            
+            <div class="auth-body">
+                <form class="auth-form active" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email address</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">Log In</button>
+                </form>
+                
+                <form class="auth-form" id="signupForm">
+                    <div class="form-group">
+                        <label for="signupName">Full Name</label>
+                        <input type="text" id="signupName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupEmail">Email address</label>
+                        <input type="email" id="signupEmail" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupConfirm">Confirm Password</label>
+                        <input type="password" id="signupConfirm" required>
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">Sign Up</button>
+                </form>
+            </div>
+            
+            <div class="auth-footer">
+                <p>By signing up, you agree to Sportify's <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio element for playback -->
+    <audio id="audioPlayer"></audio>
+
+    <script>
+        // Simulated music data with all playlists
+        const musicData = {
+            playlists: {
+                favorites: {
+                    name: "All songs",
+                    description: "Your favorite songs collection",
+                    cover: "https://www.musicgrotto.com/wp-content/uploads/2021/09/best-songs-of-all-time-graphic-art.jpg",
+                    songs: [
+                       { id: 1, title: "Susant K.C", artist: "UFF", cover: "https://debbreevents.co.uk/wp-content/uploads/2022/06/SushantKc.jpeg", duration: 200, file: "UFF__Music_Video___Sushant_KC___Swastima_Khadka___Indrakala_Rai___New_Hindi_Song___T-Series(128k).mp3" },
+                    { id: 2, title: "Durgesh Thapa", artist: "Dushman herya ko herai", cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfsQt2BFofAuqjOak_PlHyGxsFG71FoCBWBg&s", duration: 215, file: "DUSMAN_HEREKO_HERAI___Durgesh_Thapa_Priyanka_Karki_Kabita_Nepali_Ananda_Karki_Samikshya_Eleena,Pema(48k).mp3" },
+                    { id: 3, title: "melina rai", artist: "Bujhe Hunchha Kura", cover: "https://i.scdn.co/image/ab6761610000e5eb8f471df05ca3ac1c52e3a05f", duration: 203, file: "Bujhe_Hunchha_Kura____Melina_Rai___New_Nepali_Song_2025(128k).mp3" },
+                    { id: 4, title: "Arajit sing", artist: "Arajit shing shapera", cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTt6Iaa2Pp6LVRflpHGcCki2cX17EecUkjzA&s", duration: 179, file: "Ed_Sheeran_-_Sapphire__Official_Music_Video_(256k).mp3" },
+                    { id: 5, title: "Darshan Raval", artist: "Tu Hai", cover: "https://i.scdn.co/image/ab67616d0000b2731830f0a256298bb0d2160954", duration: 178, file: "Tu_Hai___Official_Music_Video___Darshan_Raval___Neha_Sharma___Prakriti_Giri___Naushad_Khan(256k).mp3" },
+                    ]
+                },
+                workout: {
+                    name: "Workout Mix",
+                    description: "High energy songs for your workout",
+                    cover: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da842b76e6775c5f5f1e8cb87ced",
+                    songs: [
+                       { id: 6, title: "Hindi", artist: "We rollin", cover: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da842b76e6775c5f5f1e8cb87ced", duration: 200, file: "We_Rollin__Official_Audio__-_Shubh(48k).mp3" },
+                    { id: 7, title: "Lady gaga", artist: "Die with a smile", cover: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da842b76e6775c5f5f1e8cb87ced", duration: 215, file: "Lady_Gaga,_Bruno_Mars_-_Die_With_A_Smile__Official_Music_Video_(256k).mp3" },
+                    { id: 8, title: "Bass busted", artist: "New bess busted", cover: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da842b76e6775c5f5f1e8cb87ced", duration: 203, file: "English_Song___Bass_New_Dj_Remix_Song_%F0%9F%91%BF____2023(256k).mp3" },
+                    { id: 9, title: "Imagine Dragons", artist: "The boy", cover: "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da842b76e6775c5f5f1e8cb87ced", duration: 179, file: "Imagine_Dragons_-_Bones__Lyrics_____The_Boys_TikTok_Trending_Song___(256k).mp3" },
+                    ]
+                },
+                chill: {
+                    name: "Chill Vibes",
+                    description: "Relaxing tunes for your downtime",
+                    cover: "https://wallpapersok.com/images/hd/chill-4k-mountain-sunset-art-6jor3hh9q5cm5bjj.jpg",
+                    songs: [
+                         { id: 10, title: "Justin bieber", artist: "Honest", cover: "https://wallpapersok.com/images/hd/chill-4k-mountain-sunset-art-6jor3hh9q5cm5bjj.jpg", duration: 200, file: "Justin_Bieber_-_Honest_ft._Don_Toliver(256k).mp3" },
+                { id: 11, title: "Christina", artist: "A thausand years", cover: "https://wallpapersok.com/images/hd/chill-4k-mountain-sunset-art-6jor3hh9q5cm5bjj.jpg", duration: 215, file: "Christina_Perri_-_A_Thousand_Years(48k).mp3" },
+                { id: 12, title: "Billie Eilish", artist: "Birds of a feather", cover: "https://wallpapersok.com/images/hd/chill-4k-mountain-sunset-art-6jor3hh9q5cm5bjj.jpg", duration: 203, file: "Billie_Eilish_-_BIRDS_OF_A_FEATHER__Official_Music_Video_(256k).mp3" },
+                    ]
+                },
+                rock: {
+                    name: "Rock Classics",
+                    description: "The greatest rock songs of all time",
+                    cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681",
+                    songs: [
+                        { id: 13, title: "Justin bieber", artist: "Honest", cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681", duration: 200, file: "Justin_Bieber_-_Honest_ft._Don_Toliver(256k).mp3" },
+                { id: 14, title: "Christina", artist: "A thausand years", cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681", duration: 215, file: "Christina_Perri_-_A_Thousand_Years(48k).mp3" },
+                { id: 15, title: "Billie Eilish", artist: "Birds of a feather", cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681", duration: 203, file: "Billie_Eilish_-_BIRDS_OF_A_FEATHER__Official_Music_Video_(256k).mp3" },
+                 { id: 16, title: "Hindi", artist: "We rollin", cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681", duration: 200, file: "We_Rollin__Official_Audio__-_Shubh(48k).mp3" },
+                    { id: 17, title: "Lady gaga", artist: "Die with a smile", cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681", duration: 215, file: "Lady_Gaga,_Bruno_Mars_-_Die_With_A_Smile__Official_Music_Video_(256k).mp3" },
+                    { id: 18, title: "Bass busted", artist: "New bess busted", cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681", duration: 203, file: "English_Song___Bass_New_Dj_Remix_Song_%F0%9F%91%BF____2023(256k).mp3" },
+                    { id: 19, title: "Imagine Dragons", artist: "The boy", cover: "https://i.scdn.co/image/ab67616d0000b273548260cbdb078bfb1dca0681", duration: 179, file: "Imagine_Dragons_-_Bones__Lyrics_____The_Boys_TikTok_Trending_Song___(256k).mp3" },
+                    ]
+                },
+                pop: {
+                    name: "Pop Hits",
+                    description: "Today's top pop hits",
+                    cover: "https://static.vecteezy.com/system/resources/previews/034/205/828/non_2x/colored-pop-music-style-concept-background-illustration-vector.jpg",
+                    songs: [
+                         { id: 20, title: "Susant K.C", artist: "UFF", cover: "https://debbreevents.co.uk/wp-content/uploads/2022/06/SushantKc.jpeg", duration: 200, file: "UFF__Music_Video___Sushant_KC___Swastima_Khadka___Indrakala_Rai___New_Hindi_Song___T-Series(128k).mp3" },
+                    { id: 21, title: "Durgesh Thapa", artist: "Dushman herya ko herai", cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfsQt2BFofAuqjOak_PlHyGxsFG71FoCBWBg&s", duration: 215, file: "DUSMAN_HEREKO_HERAI___Durgesh_Thapa_Priyanka_Karki_Kabita_Nepali_Ananda_Karki_Samikshya_Eleena,Pema(48k).mp3" },
+                    { id: 22, title: "melina rai", artist: "Bujhe Hunchha Kura", cover: "https://i.scdn.co/image/ab6761610000e5eb8f471df05ca3ac1c52e3a05f", duration: 203, file: "Bujhe_Hunchha_Kura____Melina_Rai___New_Nepali_Song_2025(128k).mp3" },
+                    { id: 23, title: "Arajit sing", artist: "Arajit shing shapera", cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTt6Iaa2Pp6LVRflpHGcCki2cX17EecUkjzA&s", duration: 179, file: "Ed_Sheeran_-_Sapphire__Official_Music_Video_(256k).mp3" },
+                    { id: 24, title: "Darshan Raval", artist: "Tu Hai", cover: "https://i.scdn.co/image/ab67616d0000b2731830f0a256298bb0d2160954", duration: 178, file: "Tu_Hai___Official_Music_Video___Darshan_Raval___Neha_Sharma___Prakriti_Giri___Naushad_Khan(256k).mp3" },
+                    ]
+                },
+                arijit: {
+                    name: "Arijit Singh",
+                    description: "47,208,118 monthly listeners",
+                    cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTt6Iaa2Pp6LVRflpHGcCki2cX17EecUkjzA&s",
+                    songs: [
+                         { id: 25, title: "Arajit sing", artist: "Arajit shing shapera", cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTt6Iaa2Pp6LVRflpHGcCki2cX17EecUkjzA&s", duration: 179, file: "Ed_Sheeran_-_Sapphire__Official_Music_Video_(256k).mp3" },
+                        { id: 26, title: "Channa Mereya", artist: "Arijit Singh", cover: "https://source.unsplash.com/random/40x40/?arijit2", duration: 240, file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3" },
+                        { id: 27, title: "Raabta", artist: "Arijit Singh", cover: "https://source.unsplash.com/random/40x40/?arijit3", duration: 260, file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-18.mp3" },
+                        { id: 28, title: "Ae Dil Hai Mushkil", artist: "Arijit Singh", cover: "https://source.unsplash.com/random/40x40/?arijit4", duration: 290, file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-19.mp3" }
+                    ]
+                }
+            },
+            allSongs: []
+        };
+
+        // Create master list of all songs
+        for (const playlist in musicData.playlists) {
+            musicData.allSongs = [...musicData.allSongs, ...musicData.playlists[playlist].songs];
+        }
+
+        // DOM Elements
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+        const searchInput = document.getElementById('search-input');
+        const userProfile = document.getElementById('userProfile');
+        const authModal = document.getElementById('authModal');
+        const closeModal = document.getElementById('closeModal');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const authForms = document.querySelectorAll('.auth-form');
+        const upgradeBtn = document.getElementById('upgradeBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const currentCover = document.getElementById('currentCover');
+        const currentTitle = document.getElementById('currentTitle');
+        const currentArtist = document.getElementById('currentArtist');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const volumeLevel = document.getElementById('volumeLevel');
+        const visualizer = document.getElementById('visualizer');
+        const playlistContent = document.getElementById('playlistContent');
+        const playlistCover = document.getElementById('playlistCover');
+        const playlistName = document.getElementById('playlistName');
+        const playlistType = document.getElementById('playlistType');
+        const playlistDescription = document.getElementById('playlistDescription');
+        const playlistOwner = document.getElementById('playlistOwner');
+        const playlistSongsCount = document.getElementById('playlistSongsCount');
+        const playlistDuration = document.getElementById('playlistDuration');
+        const playlistSongsList = document.getElementById('playlistSongsList');
+        const playlistItems = document.querySelectorAll('.playlist');
+        const cards = document.querySelectorAll('.card');
+
+        // App State
+        let isPlaying = false;
+        let currentSong = null;
+        let currentPlaylist = [];
+        let currentIndex = 0;
+
+        // Initialize the app
+        function initApp() {
+            // Simulate loading
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += 2;
+                loadingProgress.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+            }, 50);
+            
+            // Set initial song
+            setInitialSong();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Initialize visualizer
+            initVisualizer();
+        }
+
+        // Set initial song
+        function setInitialSong() {
+            currentSong = musicData.allSongs[0];
+            currentCover.src = currentSong.cover;
+            currentTitle.textContent = currentSong.title;
+            currentArtist.textContent = currentSong.artist;
+            durationEl.textContent = formatTime(currentSong.duration);
+            
+            // Set audio source
+            audioPlayer.src = currentSong.file;
+        }
+
+        // Format time (seconds to MM:SS)
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' + secs : secs}`;
+        }
+
+        // Initialize visualizer
+        function initVisualizer() {
+            visualizer.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                bar.style.height = `${Math.floor(Math.random() * 20) + 5}px`;
+                visualizer.appendChild(bar);
+            }
+        }
+
+        // Animate visualizer bars
+        function animateVisualizer() {
+            if (!isPlaying) return;
+            
+            const bars = document.querySelectorAll('.visualizer-bar');
+            bars.forEach(bar => {
+                const height = Math.floor(Math.random() * 20) + 5;
+                bar.style.height = `${height}px`;
+                bar.style.backgroundColor = `hsl(${Math.floor(Math.random() * 60) + 150}, 70%, 60%)`;
+            });
+            
+            setTimeout(animateVisualizer, 150);
+        }
+
+        // Play a song
+        function playSong(song) {
+            // Update UI
+            currentSong = song;
+            currentCover.src = song.cover;
+            currentTitle.textContent = song.title;
+            currentArtist.textContent = song.artist;
+            durationEl.textContent = formatTime(song.duration);
+            
+            // Set audio source and play
+            audioPlayer.src = song.file;
+            audioPlayer.play();
+            
+            // Update play button
+            playPauseIcon.classList.remove('fa-play');
+            playPauseIcon.classList.add('fa-pause');
+            isPlaying = true;
+            
+            // Start visualizer animation
+            animateVisualizer();
+            
+            // Highlight playing song
+            document.querySelectorAll('.song').forEach(songEl => {
+                songEl.classList.remove('playing');
+                if (parseInt(songEl.dataset.song) === song.id) {
+                    songEl.classList.add('playing');
+                }
+            });
+        }
+
+        // Show playlist
+        function showPlaylist(playlistId) {
+            const playlist = musicData.playlists[playlistId];
+            
+            if (!playlist) return;
+            
+            // Update playlist UI
+            playlistCover.src = playlist.cover;
+            playlistName.textContent = playlist.name;
+            playlistType.textContent = "PLAYLIST";
+            playlistDescription.textContent = playlist.description;
+            playlistOwner.textContent = "Sportify";
+            playlistSongsCount.textContent = `${playlist.songs.length} songs`;
+            
+            // Calculate total duration
+            const totalDuration = playlist.songs.reduce((total, song) => total + song.duration, 0);
+            const totalMinutes = Math.floor(totalDuration / 60);
+            playlistDuration.textContent = `${totalMinutes} min`;
+            
+            // Render playlist songs
+            playlistSongsList.innerHTML = '';
+            playlist.songs.forEach((song, index) => {
+                const songEl = document.createElement('div');
+                songEl.className = 'song';
+                songEl.dataset.song = song.id;
+                songEl.innerHTML = `
+                    <div class="song-number">${index + 1}</div>
+                    <div class="song-title">
+                        <img src="${song.cover}" alt="${song.title}">
+                        <div>
+                            <h4>${song.title}</h4>
+                            <p class="song-artist">${song.artist}</p>
+                        </div>
+                    </div>
+                    <div class="song-album">${playlist.name}</div>
+                    <div class="song-duration">${formatTime(song.duration)}</div>
+                    <div class="song-like"><i class="far fa-heart"></i></div>
+                `;
+                
+                songEl.addEventListener('click', () => {
+                    currentPlaylist = playlist.songs;
+                    currentIndex = index;
+                    playSong(song);
+                });
+                
+                playlistSongsList.appendChild(songEl);
+            });
+            
+            // Show playlist content
+            contentSections.forEach(section => section.style.display = 'none');
+            playlistContent.style.display = 'block';
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const section = item.dataset.section;
+                    
+                    navItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Show correct section
+                    contentSections.forEach(s => s.style.display = 'none');
+                    
+                    if (section === 'home') {
+                        document.getElementById('homeContent').style.display = 'block';
+                    } else if (section === 'premium') {
+                        document.getElementById('premiumContent').style.display = 'block';
+                    } else if (section === 'library') {
+                        // Default to showing the first playlist
+                        showPlaylist('favorites');
+                    } else {
+                        document.getElementById('homeContent').style.display = 'block';
+                    }
+                });
+            });
+            
+            // Play/Pause button
+            playPauseBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    audioPlayer.pause();
+                    playPauseIcon.classList.remove('fa-pause');
+                    playPauseIcon.classList.add('fa-play');
+                } else {
+                    audioPlayer.play();
+                    playPauseIcon.classList.remove('fa-play');
+                    playPauseIcon.classList.add('fa-pause');
+                }
+                isPlaying = !isPlaying;
+            });
+            
+            // Previous button
+            prevBtn.addEventListener('click', () => {
+                if (currentPlaylist.length > 0) {
+                    currentIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+                    playSong(currentPlaylist[currentIndex]);
+                }
+            });
+            
+            // Next button
+            nextBtn.addEventListener('click', () => {
+                if (currentPlaylist.length > 0) {
+                    currentIndex = (currentIndex + 1) % currentPlaylist.length;
+                    playSong(currentPlaylist[currentIndex]);
+                }
+            });
+            
+            // Progress bar
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                progress.style.width = `${pos * 100}%`;
+                
+                // Set audio position
+                if (audioPlayer.duration) {
+                    audioPlayer.currentTime = pos * audioPlayer.duration;
+                }
+            });
+            
+            // Volume control
+            volumeLevel.addEventListener('click', (e) => {
+                const rect = volumeLevel.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                volumeLevel.style.width = `${pos * 100}%`;
+                audioPlayer.volume = pos;
+            });
+            
+            // Audio time update
+            audioPlayer.addEventListener('timeupdate', () => {
+                if (audioPlayer.duration) {
+                    const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                    progress.style.width = `${progressPercent}%`;
+                    currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+                }
+            });
+            
+            // Audio ended
+            audioPlayer.addEventListener('ended', () => {
+                if (currentPlaylist.length > 0) {
+                    currentIndex = (currentIndex + 1) % currentPlaylist.length;
+                    playSong(currentPlaylist[currentIndex]);
+                }
+            });
+            
+            // Play song when clicked
+            document.querySelectorAll('.song').forEach(song => {
+                song.addEventListener('click', () => {
+                    const songId = parseInt(song.dataset.song);
+                    const songData = musicData.allSongs.find(s => s.id === songId);
+                    if (songData) {
+                        playSong(songData);
+                    }
+                });
+            });
+            
+            // Play playlist when clicked
+            playlistItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    showPlaylist(item.dataset.playlist);
+                });
+            });
+            
+            // Card play buttons
+            cards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    const playlistId = card.dataset.playlist;
+                    if (playlistId) {
+                        showPlaylist(playlistId);
+                    }
+                });
+            });
+            
+            // Play button on cards
+            document.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const card = btn.closest('.card');
+                    const playlistId = card.dataset.playlist;
+                    
+                    if (playlistId && musicData.playlists[playlistId]) {
+                        currentPlaylist = musicData.playlists[playlistId].songs;
+                        currentIndex = 0;
+                        playSong(currentPlaylist[currentIndex]);
+                    }
+                });
+            });
+            
+            // User profile
+            userProfile.addEventListener('click', () => {
+                authModal.classList.add('active');
+            });
+            
+            // Close modal
+            closeModal.addEventListener('click', () => {
+                authModal.classList.remove('active');
+            });
+            
+            // Upgrade button
+            upgradeBtn.addEventListener('click', () => {
+                navItems.forEach(i => i.classList.remove('active'));
+                document.querySelector('.nav-item[data-section="premium"]').classList.add('active');
+                contentSections.forEach(s => s.style.display = 'none');
+                document.getElementById('premiumContent').style.display = 'block';
+            });
+            
+            // Auth tabs
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    authForms.forEach(form => form.classList.remove('active'));
+                    document.getElementById(`${tabName}Form`).classList.add('active');
+                });
+            });
+            
+            // Auth forms
+            document.getElementById('loginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                authModal.classList.remove('active');
+                userProfile.innerHTML = 'U'; // Set user initial
+            });
+            
+            document.getElementById('signupForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                authModal.classList.remove('active');
+                userProfile.innerHTML = 'U'; // Set user initial
+            });
+            
+            // Search functionality
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.toLowerCase();
+                
+                if (query.length > 0) {
+                    // Filter songs
+                    document.querySelectorAll('.song').forEach(song => {
+                        const title = song.querySelector('h4').textContent.toLowerCase();
+                        const artist = song.querySelector('.song-artist').textContent.toLowerCase();
+                        
+                        if (title.includes(query) || artist.includes(query)) {
+                            song.style.display = 'grid';
+                        } else {
+                            song.style.display = 'none';
+                        }
+                    });
+                    
+                    // Filter cards
+                    document.querySelectorAll('.card').forEach(card => {
+                        const title = card.querySelector('h3').textContent.toLowerCase();
+                        const subtitle = card.querySelector('p').textContent.toLowerCase();
+                        
+                        if (title.includes(query) || subtitle.includes(query)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                } else {
+                    // Show all if no query
+                    document.querySelectorAll('.song').forEach(song => {
+                        song.style.display = 'grid';
+                    });
+                    document.querySelectorAll('.card').forEach(card => {
+                        card.style.display = 'block';
+                    });
+                }
+            });
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
